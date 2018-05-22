@@ -1,13 +1,12 @@
 ---
 title: "NYC_Taxi"
-author: "Grupo_X"
-date: "18 de maio de 2018"
+author: "Grupo dos Sagrados"
+date: "21 de Maio de 2018"
 output: html_document
 ---
 
 
-Instalação de bibliotecas utilizadas para análise de dados
-
+## Instalação de bibliotecas utilizadas para análise de dados
 ```{r }
 install.packages('ggmap')
 install.packages('sf')
@@ -20,33 +19,55 @@ library('zoo')
 library('scales')
 library('dendextend')
 library('ape')
-library('lubridate')
 library('ggmap')
 library('sf')
 library('mapview')
 
 ```
-
-Carrega os dados de treino para análise do estudo de caso
+## Carrega os dados de treino para análise do estudo de caso
 ```{r }
-getwd()
-
-baseDados = read_csv('C:/Users/Liliane/Documents/FIAP/Programando IA com R/Trabalho Disciplina/train.csv', locale=locale(encoding= 'ISO-8859-1'))
+baseDados = read_csv('C:/Users/logonrm/Desktop/train.csv', locale=locale(encoding= 'ISO-8859-1'))
 View(baseDados)
-
+```
+## Criação da função para distância em KM
+```{r}
+distanciaPontosGPS <- function(lat_1=0.0, long_1=0.0, lat_2=0.0, long_2=0.0) {
+ r = 6371.0
+ 
+ p1LA = lat_1 * pi / 180.0
+ p1LO = long_1 * pi / 180.0
+ p2LA = lat_2 * pi / 180.0
+ p2LO = long_2 * pi / 180.0
+ 
+ dLat = p2LA - p1LA
+ dLong = p2LO - p1LO
+ 
+ a = sin(dLat / 2) * sin(dLat / 2) + cos(p1LA) * cos(p2LA) * sin(dLong / 2) * sin(dLong / 2);
+ c = 2 * atan2(sqrt(a), sqrt(1 - a))
+ 
+ zz = round(r * c,3)
+ 
+ return(zz) 
+ 
+}
 
 ```
-
+## Criação da coluna de distância em KM com a função criada acima
 ```{r}
+baseDados$DistanciaKM = distanciaPontosGPS(baseDados$pickup_latitude, baseDados$pickup_longitude, baseDados$dropoff_latitude, baseDados$dropoff_longitude)
+```
+## Criando a função de distância Euclidiana
+```{r}
+distanciaEuclidiana <- function(vlr1 = 0.0, vlr2 = 0.0, vlr3 = 0.0, vlr4 = 0.0){
+ sqrt(((vlr1 - vlr2) ^ 2) + ((vlr3 - vlr4) ^ 2))/10
+}
 
+#Variáveis para testes de coordenadas, para sabermos se está correto
 localizacao1 = geocode("Av. Paulista, 2 - Bela Vista, Sao Paulo, Brasil")
 localizacao2 = geocode("Av. Rangel Pestana, 1 - Bras, Sao Paulo - SP")
 
-```
-
-
-```{r}
-
+##===================================================================
+#Variáveis que estamos fazendo testes com coordenadas e testando nossas funções
 locations_sf <- c(-73.98215, 40.76794)
 map <- get_googlemap(center = locations_sf, zoom = 23)
 ggmap(map) +
@@ -62,35 +83,6 @@ get_openstreetmap(bbox = c(left = -95.80204, bottom = 29.38048, right =
                             -94.92313, top = 30.14344), scale = 606250, format = c("png", "jpeg",
                                                                                    "svg", "pdf", "ps"), messaging = FALSE, urlonly = FALSE,
 filename = "ggmapTemp", color = c("color", "bw"))
-
-pi
-
-distanciaPontosGPS <- function(ap1LA=0.0, ap1LO=0.0, ap2LA=0.0, ap2LO=0.0) 
-{
- r = 6371.0
- 
- p1LA = ap1LA * pi / 180.0
- p1LO = ap1LO * pi / 180.0
- p2LA = ap2LA * pi / 180.0
- p2LO = ap2LO * pi / 180.0
- 
- dLat = p2LA - p1LA
- dLong = p2LO - p1LO
- 
- a = sin(dLat / 2) * sin(dLat / 2) + cos(p1LA) * cos(p2LA) * sin(dLong / 2) * sin(dLong / 2);
- c = 2 * atan2(sqrt(a), sqrt(1 - a))
- 
- zz = round(r * c,3)
- 
- return(zz) 
- 
-}
-
-baseDados$DistanciaKM = distanciaPontosGPS(baseDados$pickup_latitude, baseDados$pickup_longitude, baseDados$dropoff_latitude, baseDados$dropoff_longitude)
-
-distanciaEuclidiana <- function(vlr1 = 0.0, vlr2 = 0.0, vlr3 = 0.0, vlr4 = 0.0){
- sqrt(((vlr1 - vlr2) ^ 2) + ((vlr3 - vlr4) ^ 2))/10
-}
 
 vetInicial = c(baseDados$pickup_latitude, baseDados$pickup_longitude)
 vetFinal = c(baseDados$dropoff_latitude, baseDados$dropoff_longitude)
